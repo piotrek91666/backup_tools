@@ -21,7 +21,7 @@ function get_opt() {
 }
 
 function log() {
-	echo -e "[$(date +'%Y-%m-%d %H:%M')][MSG] $@" | tee -a "${log_dir}/backup_$(date +'%Y-%m-%d').log"
+	echo -e "[$(date +'%Y-%m-%d %H:%M')][MSG] $@" | tee -a "${LOG_DIR}/backup_$(date +'%Y-%m-%d').log"
 }
 
 function get_hosts() {
@@ -57,7 +57,7 @@ function check_backupdb() {
     fi
 }
 
-function ssh_check() {
+function check_ssh() {
 	SSH_PATH="$(get_opt 'ssh_path')"
 	[[ ! -f "$SSH_PATH" ]] && log "SSH not found." && exit 1
 }
@@ -208,7 +208,6 @@ function backup_mysql() {
 	local backup_stor="${HOSTINFO['dst_path']}/${HOSTINFO['src_name']}/mysql/"
 	local src_sshline="${HOSTINFO['dst_ssh']} -A -p${HOSTINFO['src_port']} -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${HOSTINFO['src_user']}@${HOSTINFO['src_host']}"
 	local dst_sshline="${SSH_PATH} -A -p${HOSTINFO['dst_port']} -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${HOSTINFO['dst_user']}@${HOSTINFO['dst_host']}"
-	local log_dir="$(get_opt 'log_directory')"
 	local failstate=0
     
     if [[ -z "$dblist" ]]; then
@@ -289,7 +288,6 @@ function backup_system() {
 	local backup_stor="${HOSTINFO['dst_path']}/${HOSTINFO['src_name']}/system/"
 	local dst_sshline="${SSH_PATH} -A -p${HOSTINFO['dst_port']} -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${HOSTINFO['dst_user']}@${HOSTINFO['dst_host']}"
     local rsync="${HOSTINFO['dst_rsync']} ${rsync_opt} --exclude={$rsync_excld}"
-    local log_dir="$(get_opt 'log_directory')"
     local failstate=0
     
     # Rsync system
@@ -332,7 +330,9 @@ function check_running() {
 declare -A HOSTLIST
 declare -A HOSTINFO
 check_backupdb
-ssh_check
+check_ssh
+LOG_DIR="$(get_opt 'log_directory')"
+
 get_hosts "$1"
 args_logic "$@"
 check_running
