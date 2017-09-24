@@ -69,6 +69,7 @@ function ssh_agent() {
     [[ ! -f "$sshkey_path" ]] && echo 'SSH PRIVATE KEY not found.' && exit 1
     eval $($sshagent_path)
     ssh-add $sshkey_path
+    trap "echo 'Killing ssh-agent.'; kill -15 $SSH_AGENT_PID" 0 1
 }
 
 function args_logic() {
